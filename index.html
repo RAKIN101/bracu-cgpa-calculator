@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BRAC University CGPA Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: white;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 40px auto;
+      background-color: #ffffffee;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 51, 102, 0.3);
+      transition: background-color 0.3s;
+    }
+
+    body.dark-mode .container {
+      background-color: #1e1e1e;
+    }
+
+    h1, h2 {
+      text-align: center;
+      color: #800000;
+    }
+
+    body.dark-mode h1, body.dark-mode h2 {
+      color: #ffcccb;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    body.dark-mode th, body.dark-mode td {
+      border-color: #555;
+      background-color: #2b2b2b;
+      color: white;
+    }
+
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #aaa;
+    }
+
+    input#prevCredits, input#prevCGPA {
+      width: 280px;
+    }
+
+    button {
+      background-color: #800000;
+      color: white;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 20px;
+      text-align: center;
+      color: #004d00;
+    }
+
+    body.dark-mode .result {
+      color: #90ee90;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .bg-switcher {
+      text-align: center;
+      margin-top: 20px;
+    }
+      @media (max-width: 600px) {
+      .container {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      input, select, button {
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      input#prevCredits, input#prevCGPA {
+        width: 100%;
+      }
+
+      table {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>BRAC University CGPA Calculator</h1>
+
+    <div class="section">
+      <h2>Select Program Details</h2>
+      <select id="department">
+        <option value="">-- Select Department --</option>
+        <option value="CSE">Computer Science and Engineering (CSE)</option>
+        <option value="EEE">Electrical and Electronic Engineering (EEE)</option>
+        <option value="BBA">Bachelor of Business Administration (BBA)</option>
+        <option value="ARC">Architecture (ARC)</option>
+        <option value="LAW">Law</option>
+        <option value="ENG">English</option>
+        <option value="ECO">Economics</option>
+        <option value="MDS">Masters in Development Studies</option>
+        <option value="MBA">Masters in Business Administration (MBA)</option>
+        <option value="MSCSE">Masters in CSE (MSCSE)</option>
+        <option value="PHAR">Pharmacy</option>
+        <option value="MIC">Microbiology</option>
+        <option value="BIO">Biotechnology</option>
+        <option value="ANT">Anthropology</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h2>Previous Academic Record</h2>
+      <input type="number" id="prevCredits" placeholder="Previously Completed Credits" min="0" />
+      <input type="number" step="0.01" id="prevCGPA" placeholder="Previous CGPA" min="0" max="4" />
+    </div>
+
+    <div class="section">
+      <h2>Add New Courses</h2>
+      <input type="text" id="course" placeholder="Course Name" />
+      <input type="number" id="credit" placeholder="Credit" min="0" step="0.01" />
+      <input type="number" id="gpaInput" placeholder="GPA" min="0" max="4" step="0.01" />
+      <button onclick="addCourse()">Add Course</button>
+    </div>
+
+    <table id="courseTable">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Credit</th>
+          <th>GPA</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="result" id="cgpaResult">Your CGPA will appear here.</div>
+
+    <div class="bg-switcher">
+      <label>
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()"> Dark Theme
+      </label>
+    </div>
+  </div>
+
+  <script>
+    const tableBody = document.querySelector("#courseTable tbody");
+    const cgpaResult = document.getElementById("cgpaResult");
+    const courses = [];
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark-mode");
+    }
+
+    function addCourse() {
+      const course = document.getElementById("course").value.trim();
+      const credit = parseFloat(document.getElementById("credit").value);
+      const gpa = parseFloat(document.getElementById("gpaInput").value);
+
+      if (!course || isNaN(credit) || isNaN(gpa) || credit <= 0 || gpa < 0 || gpa > 4) {
+        alert("Please fill all fields correctly.");
+        return;
+      }
+
+      courses.push({ course, credit, gpa });
+      updateTable();
+      calculateCGPA();
+
+      document.getElementById("course").value = "";
+      document.getElementById("credit").value = "";
+      document.getElementById("gpaInput").value = "";
+    }
+
+    function removeCourse(index) {
+      courses.splice(index, 1);
+      updateTable();
+      calculateCGPA();
+    }
+
+    function updateTable() {
+      tableBody.innerHTML = "";
+      courses.forEach((c, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${c.course}</td>
+          <td>${c.credit.toFixed(2)}</td>
+          <td>${c.gpa.toFixed(2)}</td>
+          <td><button onclick="removeCourse(${index})">Remove</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function calculateCGPA() {
+      let newTotalPoints = 0;
+      let newTotalCredits = 0;
+
+      courses.forEach((c) => {
+        newTotalPoints += c.gpa * c.credit;
+        newTotalCredits += c.credit;
+      });
+
+      const prevCredits = parseFloat(document.getElementById("prevCredits").value);
+      const prevCGPA = parseFloat(document.getElementById("prevCGPA").value);
+
+      let totalCredits = newTotalCredits;
+      let totalPoints = newTotalPoints;
+
+      if (!isNaN(prevCredits) && !isNaN(prevCGPA)) {
+        totalCredits += prevCredits;
+        totalPoints += prevCredits * prevCGPA;
+      }
+
+      if (totalCredits === 0) {
+        cgpaResult.textContent = "Please enter valid course and credit information.";
+        return;
+      }
+
+      const cgpa = Math.round((totalPoints / totalCredits) * 100) / 100;
+      cgpaResult.textContent = `Your CGPA is: ${cgpa.toFixed(2)}`;
+    }
+  </script>
+  <div style="position: fixed; bottom: 10px; right: 10px; font-size: 14px; color: #999;">
+    &copy; Rakin_23301316
+  </div>
+</body>
+</html>
